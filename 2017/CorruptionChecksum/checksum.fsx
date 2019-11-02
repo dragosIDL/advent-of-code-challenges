@@ -1,6 +1,6 @@
 (*
     https://adventofcode.com/2017/day/2
-    
+
     As you walk through the door, a glowing humanoid shape yells in your direction. 
     "You there! Your state appears to be idle. Come help us repair the corruption 
     in this spreadsheet - if we take another millisecond, we'll have to display an hourglass cursor!"
@@ -28,17 +28,20 @@ open System.IO
 let read fPath = File.ReadAllLines fPath
 
 let spreadSheet =
-    read "2017/CorruptionChecksum/checksum.txt" |> Array.map (fun line -> line.Split '\t' |> Array.map Int32.Parse)
+    read "2017/CorruptionChecksum/checksum.txt" 
+    |> Array.map (fun line -> line.Split '\t' |> Array.map Int32.Parse)
 
-let minMaxLine (l: int array) =
+let maxMinLine (l: int array) =
     let min = l |> Array.min
     let max = l |> Array.max
-    (min, max)
+    (max, min)
+
+let pairF f (a,b) = f a b
 
 let result =
     spreadSheet
-    |> Array.map minMaxLine
-    |> Array.sumBy (fun (min, max) -> max - min)
+    |> Array.map maxMinLine
+    |> Array.sumBy (pairF (-))
 
 (*
     --- Part Two ---
@@ -73,11 +76,10 @@ let divideEvenly (l: int array) =
                 let jv = l.[j]
                 if iv % jv = 0 then yield (iv, jv)
                 if jv % iv = 0 then yield (jv, iv)
-        failwith "based on assumptions, impossbile"
     }
     |> Seq.head
 
 let partTwo =
     spreadSheet
     |> Array.map divideEvenly
-    |> Array.sumBy (fun (a, b) -> a / b)
+    |> Array.sumBy (pairF (/))
