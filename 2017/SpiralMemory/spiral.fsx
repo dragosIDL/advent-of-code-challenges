@@ -24,5 +24,38 @@
     Data from square 23 is carried only 2 steps: up twice.
     Data from square 1024 must be carried 31 steps.
     How many steps are required to carry the data from the square identified in 
-    your puzzle input all the way to the access port?
+    your puzzle input all the way to the access port? 
+    
+    Input: 325489
 *)
+
+let input = 325489
+
+let fsqrt = float >> sqrt
+let cornerSq = input |> fsqrt |> floor |> int
+let bottomRightSq = 
+    if cornerSq % 2 = 0 
+    then cornerSq - 1 
+    else cornerSq
+
+let sideLen = (bottomRightSq + 1)
+let startPoint = (pown bottomRightSq 2) 
+
+let sides = seq { 
+    for i in [0..3] do
+        yield (
+            (startPoint + 1 + i * sideLen),
+            (startPoint + (i + 1)*sideLen)
+        )
+}
+
+let sideStart = 
+    sides 
+    |> Seq.find (fun (s, e) -> s < input && e > input ) 
+    |> fst
+
+let position = input - sideStart + 1 // 17
+let cartezianLen = sideLen / 2
+let offsetToCartezian = cartezianLen - position
+
+let total = offsetToCartezian + cartezianLen
