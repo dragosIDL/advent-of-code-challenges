@@ -35,44 +35,20 @@ let readData (str: string) =
 
 let rows() = input |> Array.map readData
 
-type State =   
-    { 
-        LFP: Set<string> // looks for parent
-        LFK: Set<string> // looks for kid
-    }
+let folder (lfp,lfk) el =
 
-let resultInMutable = 
-
-    let mutable lfp = Set.empty<string>
-    let mutable lfk = Set.empty<string>
-    for r in rows() do
-        
-        if lfk.Contains r.Data.Name 
-        then lfk <- lfk.Remove r.Data.Name
-        else lfp <- lfp.Add r.Data.Name
-
-        for ch in r.Children do
-            if lfp.Contains ch
-                then lfp <- lfp.Remove ch
-                else lfk <- lfk.Add ch
-
-    lfp |> Set.toSeq |> Seq.head
-
-let folder state el =
-
-    let state =
-        if state.LFK |> Set.contains el.Data.Name
-        then {state with LFK = state.LFK |> Set.remove el.Data.Name}
-        else {state with LFP = state.LFP |> Set.add el.Data.Name}
+    let lfp, lfk =
+        if lfk |> Set.contains el.Data.Name
+        then lfp, lfk|> Set.remove el.Data.Name
+        else lfp |> Set.add el.Data.Name, lfk
 
     el.Children 
-    |> Array.fold (fun (s:State) e -> 
-        if s.LFP |> Set.contains e
-        then {state with LFP = state.LFP |> Set.remove e}
-        else {state with LFK = state.LFK |> Set.add e}) state
+    |> Array.fold (fun (lfp, lfk) e -> 
+        if lfp |> Set.contains e
+        then lfp |> Set.remove e, lfk
+        else lfp, lfk|> Set.add e) (lfp,lfk)
 
-let resultInImmutable = 
+let partOne = 
     rows()
-    |> Array.fold folder { LFP = Set.empty<string>; LFK= Set.empty<string> }
-    |> fun s -> s.LFP |> Set.toSeq |> Seq.head
-
+    |> Array.fold folder (Set.empty<string>,Set.empty<string>)
+    |> fun (lfp,_) -> lfp |> Set.toSeq |> Seq.head
