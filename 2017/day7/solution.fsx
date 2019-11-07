@@ -71,7 +71,7 @@ let folder state el =
         then {state with LFP = state.LFP |> Set.remove e}
         else {state with LFK = state.LFK |> Set.add e}) state
 
-let resultInStateless = 
+let resultInImmutable = 
     rows()
     |> Array.fold folder { LFP = Set.empty<string>; LFK= Set.empty<string> }
     |> fun s -> s.LFP |> Set.toSeq |> Seq.head
