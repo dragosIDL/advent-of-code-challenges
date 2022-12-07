@@ -1,11 +1,8 @@
-#r "nuget: Newtonsoft.Json"
-
 open System
 open System.IO
 open System.Collections.Generic
 
-let inputPath =
-    "C:\\Users\\dragos\\source\\dragosIDL\\advent-of-code-challenges\\2022\\day7\\input.txt"
+let inputPath = "2022\\day7\\input.txt"
 
 let input = File.ReadAllLines inputPath
 
@@ -59,8 +56,7 @@ let folder s line =
         s
     | x ->
         let d = x.Split(" ")
-        let file = { Name = d[1]; Size = int d[0] }
-        s.Children.Add(File(file))
+        s.Children.Add(File({ Name = d[1]; Size = int d[0] }))
 
         s
 
@@ -86,7 +82,7 @@ let directorySizes tree =
     let ts = accumulate ds 0 tree
     ds, ts
 
-let dirs, usedSize = directorySizes (Dir(directoryTree))
+let dirs, usedSize = directorySizes (Dir directoryTree)
 
 let part1 = dirs |> Seq.filter ((>) 100_000) |> Seq.sum
 

@@ -1,7 +1,6 @@
 open System.IO
 
-let inputPath =
-    "C:\\Users\\dragos\\source\\dragosIDL\\advent-of-code-challenges\\2022\\day2\\input.txt"
+let inputPath = "2022\\day2\\input.txt"
 
 let input = File.ReadAllLines inputPath
 
