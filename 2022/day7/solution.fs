@@ -1,59 +1,94 @@
+#r "nuget: Newtonsoft.Json"
+
 open System
 open System.IO
 open System.Collections.Generic
 
 let inputPath =
-    "C:\\Users\\DragosIsmana\\source\\dragosIDL\\advent-of-code-challenges\\2022\\day7\\input.txt"
+    "C:\\Users\\dragos\\source\\dragosIDL\\advent-of-code-challenges\\2022\\day7\\input.txt"
 
 let input = File.ReadAllLines inputPath
 
-// type File = {
-//     Name: string
-//     Size: int
-// }
+type Tree =
+    | File of F
+    | Dir of D
 
-// type Dir = {
-//     Name: string
-//     Dirs: Dir list
-//     Files: File list
-//     Size: int
-// }
+and F = { Name: string; Size: int }
 
-// type Tree = 
-// | Dir of Dir
-// | File of File
+and D =
+    { Name: string
+      Parent: D option
+      Children: List<Tree> }
 
-// let root = { Name= "/"; Dirs = []; Files= []; Size = 0 }
+let pickChildDir dir name =
+    dir.Children
+    |> Seq.choose (function
+        | Dir d -> Some d
+        | _ -> None)
+    |> Seq.find (fun x -> x.Name = name)
 
-let mutable dirs = "";
-let mutable files = "";
+let rec goToRoot dir =
+    match dir.Parent with
+    | Some p ->
+        printfn "%A" dir
+        goToRoot (p)
+    | None -> dir
 
-let di = new Dictionary<list<string>, int>()
+let folder s line =
+    match line with
+    | "$ cd /" ->
+        { Name = "/"
+          Parent = None
+          Children = new List<Tree>() }
+    | "$ ls" -> s
+    | "$ cd .." ->
+        match s.Parent with
+        | Some a -> a
+        | None -> failwith "how?"
+    | x when x.StartsWith("$ cd") -> pickChildDir s (x.Split(" ") |> Array.last)
+    | x when x.StartsWith("dir") ->
 
-let folder (ls: string list) (command : string) =
-    match command with 
-    | "$ ls" -> ls
-    | "$ cd .." -> ls.Tail
-    | y when y.StartsWith("$ cd") ->  
-        let name = y.Split(" ")[2];
-        ls @ [name]
-    | y when y.StartsWith("dir") ->
-        let name = y.Split(" ")[1]
-        // let path = ls |> fun x -> String.Join("", x)
-        di.Add(ls @ ["["+name+"]"] , 0)
-        ls
-    | a -> 
-        let asx = a.Split(" ")
-        let size = int asx[0]
-        let name = asx[1]
-        // let path = ls |> fun x -> String.Join("", x)
-        di.Add(ls @ [name] , size)
-        ls
+        s.Children.Add(
+            Dir(
+                { Name = (x.Split(" ") |> Array.last)
+                  Children = new List<Tree>()
+                  Parent = Some s }
+            )
+        )
 
+        s
+    | x ->
+        let d = x.Split(" ")
+        let file = { Name = d[1]; Size = int d[0] }
+        s.Children.Add(File(file))
 
+        s
 
-
-let systemTree = 
+let directoryTree =
     input
-    |> Array.skip 1
-    |> Array.fold  folder ["[/]"]
+    |> Array.fold
+        folder
+        { Name = "/"
+          Parent = None
+          Children = new List<Tree>() }
+    |> goToRoot
+
+let directorySizes tree =
+    let rec accumulate (s: List<int>) acc =
+        function
+        | File f -> acc + f.Size
+        | Dir d ->
+            let ss = d.Children |> Seq.fold (accumulate s) 0
+            s.Add(ss)
+            ss + acc
+
+    let ds = new List<int>()
+    let ts = accumulate ds 0 tree
+    ds, ts
+
+let dirs, usedSize = directorySizes (Dir(directoryTree))
+
+let part1 = dirs |> Seq.filter ((>) 100_000) |> Seq.sum
+
+let needed = 30_000_000 - 70_000_000 + usedSize
+let part2 = dirs |> Seq.filter ((<) needed) |> Seq.min
