@@ -20,10 +20,10 @@ for (var i = 1; i < matrix.Count - 1; i++)
     var leftTrees = Enumerable.Range(0, j).Select(index => matrix[i][j - 1 - index]).ToList();
     var rightTrees = Enumerable.Range(j + 1, matrix[i].Count - j - 1).Select(index => matrix[i][index]).ToList();
 
-    var score = VisibleTrees(topTrees, center)
-        * VisibleTrees(bottomTrees, center)
-        * VisibleTrees(leftTrees, center)
-        * VisibleTrees(rightTrees, center);
+    var score = CountVisibleTrees(topTrees, center)
+        * CountVisibleTrees(bottomTrees, center)
+        * CountVisibleTrees(leftTrees, center)
+        * CountVisibleTrees(rightTrees, center);
 
     var isVisible =
         topTrees.Max() < center
@@ -40,7 +40,7 @@ var sides = (matrix.Count - 2) * 2;
 Console.WriteLine($"The amount of visible trees is {trees.Count(a => a.isVisible) + rows + sides}");
 Console.WriteLine($"Max score {trees.Max(a => a.score)}");
 
-static int VisibleTrees(IEnumerable<int> el, int item)
+static int CountVisibleTrees(IEnumerable<int> el, int item)
 {
     int l = 0;
     foreach (var e in el)
