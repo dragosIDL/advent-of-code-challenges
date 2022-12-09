@@ -12,21 +12,13 @@ let directions =
     |> Array.collect (fun (x: string array) -> [| 1 .. int x[1] |] |> Array.map (fun _ -> x[0]))
     |> Array.toList
 
-let isTouching head tail =
-    let isOverlapping (hx, hy) (tx, ty) = hx = tx && hy = ty
+let isTouching (head: int * int) (tx, ty) =
 
-    let aroundPos (tx, ty) =
-        [ (tx + 1, ty - 1)
-          (tx + 1, ty)
-          (tx + 1, ty + 1)
-          (tx, ty - 1)
-          (tx, ty + 1)
-          (tx - 1, ty - 1)
-          (tx - 1, ty)
-          (tx - 1, ty + 1) ]
+    let neighbors i j = (tx + i, ty + j)
 
-    isOverlapping head tail
-    || aroundPos tail |> List.contains head
+    [ -1; 0; 1 ] 
+    |> List.collect (fun i -> List.map (neighbors i) [ -1; 0; 1 ] )
+    |> List.contains head
 
 let move (directions) (snake: pos list) =
 
@@ -47,14 +39,13 @@ let move (directions) (snake: pos list) =
         let newSnake =
             s.Tail
             |> List.fold
-                (fun (newSnake, previous) ((tx, ty): pos) ->
+                (fun (newSnake, previous) next ->
 
-                    if isTouching previous (tx, ty) then
-                        (newSnake @ [ (tx, ty) ], (tx, ty))
+                    if isTouching previous next then
+                        newSnake @ [ next ], next
                     else
-                        let (tx, ty) = moveTowards previous (tx, ty)
-                        (newSnake @ [ (tx, ty) ], (tx, ty)))
-
+                        let next = moveTowards previous next
+                        newSnake @ [ next ], next)
                 ([ newHeadPosition ], newHeadPosition)
             |> fst
 
