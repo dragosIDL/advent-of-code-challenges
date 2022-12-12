@@ -18,14 +18,15 @@ let parse (s: string) =
 
 let input = File.ReadAllLines inputPath |> Array.map parse
 
-let (cycles, _, _) =
+let folder (s: (int * int * int) list, x: int, cycleNr: int) (op: Op) =
+    match op with
+    | Noop -> (s @ [ (cycleNr, x, x) ], x, cycleNr + 1)
+    | Addx a -> (s @ [ (cycleNr, x, x) (cycleNr + 1, x, x + a) ], x + a, cycleNr + 2)
+
+let cycles =
     input
-    |> Array.fold
-        (fun (s: (int * int * int) list, x: int, cycleNr: int) op ->
-            match op with
-            | Noop -> (s @ [ (cycleNr, x, x) ], x, cycleNr + 1)
-            | Addx a -> (s @ [ (cycleNr, x, x); (cycleNr + 1, x, x + a) ], x + a, cycleNr + 2))
-        ([], 1, 1)
+    |> Array.fold folder ([], 1, 1)
+    |> fun (a, _, _) -> a
 
 let part1 =
     cycles
@@ -33,20 +34,20 @@ let part1 =
         seq { 20..40..220 }
         |> Seq.map (fun index -> a[index - 1])
         |> Seq.toList
-    |> List.map (fun (cycle, during, _) -> cycle * during)
-    |> List.sum
+        |> List.map (fun (cycle, during, _) -> cycle * during)
+        |> List.sum
 
-let convert i x =
-    [ -1; 0; 1 ]
-    |> List.map ((+) x)
+let draw i x =
+    [ x - 1; x; x + 1 ]
     |> List.contains i
-    |> fun b -> if b then "#" else "."
-
-let strJoin (s: string list) = String.Join("", s)
+    |> function
+        | true -> '#'
+        | false -> '.'
 
 let part2 =
     cycles
     |> List.map (fun (_, _, x) -> x)
-    |> fun a -> 0 :: a
-    |> List.chunkBySize 40
-    |> List.map (List.mapi convert >> strJoin)
+    |> fun a ->
+        0 :: a
+        |> List.chunkBySize 40
+        |> List.map (List.mapi draw >> List.toArray >> System.String)
